@@ -1,6 +1,9 @@
 Building
 =======
 
+NOTE: For production use, make sure to save the encryption key in `/keys.enc` that is generated when building
+the container.
+
 Build the image: `docker build -t mariadb .`
 
 Starting the server this way makes it possible to connect and reconnect to the
@@ -103,3 +106,37 @@ Audit
 * Securich - http://www.securich.com/ 
 
 Run oak security audit: `oak-security-audit --user=root --ask-pass --socket=/run/mysqld/mysqld.sock --audit-level=strict`
+
+
+
+MySQL performance tuning
+------------------------
+
+The Percona Toolkit is installed in the container. These tools works with the
+local MySQL process. They cannot be used for Amazon RDS.
+
+Turn on slow query logs in local db:
+
+    set global slow_query_log = 'ON';
+    set global long_query_time = 5;
+    set global log_queries_not_using_indexes = 1;
+
+    show variables like 'slow%';
+    show variables like 'long%';
+    show variables like 'log%';
+
+Test that it works:  `SELECT SLEEP(15);`. This should show up in the slow log.
+
+Run the part of the application that is slow. Then do `flush logs;` and check
+`/var/lib/mysqld/mysql-slow.log`. This will analyze the log and print a nice
+report: `pt-query-digest /var/lib/mysqld/vtiger-slow.log`
+
+RDS will save the output to a table. This can be turned on in a local db like
+this:
+
+    set global log_output = 'TABLE';
+    SHOW CREATE TABLE mysql.slow_log;
+
+Turn logging off:
+
+    set global slow_query_log = 'OFF';

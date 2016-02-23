@@ -1,3 +1,5 @@
+# NOTE: Change the passowrd for MariaDb encryption below from SECRET
+
 FROM ubuntu:trusty
 
 # Mirros: http://ftp.acc.umu.se/ubuntu/ http://us.archive.ubuntu.com/ubuntu/
@@ -23,9 +25,19 @@ RUN add-apt-repository 'deb [arch=amd64,i386] http://ftp.ddg.lth.se/mariadb/repo
 RUN apt-get update -y
 RUN apt-get install -y mariadb-server
 
-RUN apt-get install python-mysqldb
+RUN /bin/bash -c 'echo -e "#Key file\n1;$(openssl rand -hex 32)" > /keys.txt'
+RUN openssl enc -aes-256-cbc -md sha1 -k SECRET -in keys.txt -out keys.enc
+RUN rm /keys.txt
+
+RUN apt-get install -y python-mysqldb
 ADD ./openark-kit-196-1.deb /
 RUN dpkg -i /openark-kit-196-1.deb 
+
+RUN apt-get install -y libterm-readkey-perl libio-socket-ssl-perl
+ADD ./percona-toolkit.deb /
+RUN dpkg -i /percona-toolkit.deb
+
+ADD ./etc-mysql-my.cnf /etc/mysql/my.cnf
 
 RUN apt-get install -y python python-setuptools
 RUN easy_install supervisor
