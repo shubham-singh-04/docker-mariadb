@@ -49,6 +49,7 @@ file_key_management_filekey = secret
 innodb-encrypt-tables
 innodb-encrypt-log
 innodb-encryption-threads=4
+# innodb-encryption-rotate-key-age=1800
 
 encrypt_tmp_files
 encrypt-tmp-disk-tables=1
@@ -92,3 +93,13 @@ INSERT INTO test VALUES (101, 'Hello, World!');
 SELECT * FROM test; # data will display
 exit
 ```
+
+
+Audit
+-----
+
+
+* Open Ark Kit - https://openarkkit.googlecode.com/svn/trunk/openarkkit/doc/html/oak-security-audit.html
+* Securich - http://www.securich.com/ 
+
+Run oak security audit: `oak-security-audit --user=root --ask-pass --socket=/run/mysqld/mysqld.sock --audit-level=strict`

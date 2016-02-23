@@ -23,6 +23,9 @@ RUN add-apt-repository 'deb [arch=amd64,i386] http://ftp.ddg.lth.se/mariadb/repo
 RUN apt-get update -y
 RUN apt-get install -y mariadb-server
 
+RUN apt-get install python-mysqldb
+ADD ./openark-kit-196-1.deb /
+RUN dpkg -i /openark-kit-196-1.deb 
 
 RUN apt-get install -y python python-setuptools
 RUN easy_install supervisor
