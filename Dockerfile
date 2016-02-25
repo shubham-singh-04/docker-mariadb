@@ -23,7 +23,7 @@ RUN add-apt-repository 'deb [arch=amd64,i386] http://ftp.ddg.lth.se/mariadb/repo
 #RUN add-apt-repository 'deb [arch=amd64,i386] http://lon1.mirrors.digitalocean.com/mariadb/repo/10.1/ubuntu trusty main'
 
 RUN apt-get update -y
-RUN apt-get install -y mariadb-server
+RUN apt-get install -y mariadb-server libpam-cracklib
 
 RUN /bin/bash -c 'echo -e "#Key file\n1;$(openssl rand -hex 32)" > /keys.txt'
 RUN openssl enc -aes-256-cbc -md sha1 -k SECRET -in keys.txt -out keys.enc
@@ -44,3 +44,18 @@ RUN easy_install supervisor
 ADD ./etc-supervisord.conf /etc/supervisord.conf
 ADD ./etc-supervisor-conf.d-supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 RUN mkdir -p /var/log/supervisor/
+
+RUN apt-get install -y groff
+RUN easy_install pip
+RUN pip install awscli
+
+RUN yum install -y vixie-cron
+ADD ./daily.sh /
+ADD ./monthly.sh /
+RUN echo '0 1 * * *  /bin/bash -c "/daily.sh"' > /mycron
+RUN echo '0 0 1 * *  /bin/bash -c "/monthly.sh"' > /mycron
+
+
+RUN crontab /mycron
+
+

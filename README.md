@@ -1,8 +1,7 @@
 Building
 =======
 
-NOTE: For production use, make sure to save the encryption key in `/keys.enc` that is generated when building
-the container.
+NOTE: For production use, update `Dockerfile` with a password that should be used for encryption of the MariaDb key file.
 
 Build the image: `docker build -t mariadb .`
 
@@ -13,14 +12,16 @@ server:
     --restart="on-failure:10" --name mariadb -h mariadb \
     mariadb /bin/bash -c "supervisord; bash"
 
+
+Start with setting the mysql root password (if this hasn't been done already):
+`mysqladmin -u root password NEWPASSWORD` (cahnge NEWPASSWORD to a string password, preferably random).
+
+
 Exit the server with `ctrl-p` `ctrl-q`. Reconnect with `docker attach logserver`
 
 
 Setup Encryption
 ---------------
-
-Start with setting the mysql root password (if this hasn't been done already):
-`mysqladmin -u root password NEWPASSWORD` (cahnge NEWPASSWORD to a string password, preferably random).
 
 Encryption of tables and tablespaces with MariaDb requires version 10.1.3. Significant changes 
 were made in versoin 10.1.4 so this version or higher should be used.
@@ -43,32 +44,25 @@ Setup the encryption key:
 # Update mysql configuration
 nano /etc/mysql/my.cnf
 
-# Add  in [mysqld] section
-plugin-load-add=file_key_management.so
-file_key_management_encryption_algorithm=aes_cbc
-file_key_management_filename = /keys.enc
-file_key_management_filekey = secret
+file_key_management_filekey = SECRET
 
-innodb-encrypt-tables
-innodb-encrypt-log
-innodb-encryption-threads=4
-# innodb-encryption-rotate-key-age=1800
-
-encrypt_tmp_files
-encrypt-tmp-disk-tables=1
-aria-encrypt-tables=1
-
-# Create the key file
-echo -e "#Key file\n1;$(openssl rand -hex 32)" > /keys.txt
-openssl enc -aes-256-cbc -md sha1 -k secret -in keys.txt -out keys.enc
-
-# Test to decrypt the file
-openssl enc -aes-256-cbc -md sha1 -k secret -in keys.enc -d
-
-# Remove the cleartext
-rm /keys.txt
+# This can be used to decrypt the key file
+openssl enc -aes-256-cbc -md sha1 -k SECRET -in keys.enc -d
 ```
 
+Setup password check
+--------------------
+
+Using the simple password check module: https://mariadb.com/kb/en/mariadb/simple_password_check/
+
+Update `my.cnf` if you want to change the policy (default is 8 characters, low/upper and one digit).
+
+```
+mysql -uroot -p
+INSTALL SONAME 'simple_password_check';
+```
+
+Check that the plugin is active: `show plugins`
 
 
 Test the encryption
@@ -140,3 +134,25 @@ this:
 Turn logging off:
 
     set global slow_query_log = 'OFF';
+
+
+Setup master-slave replication
+-----------------------------
+
+Binlog is enabled in the configuration. Show status with: `show master status;`
+
+This article explains how to setup the slave: https://mariadb.com/kb/en/mariadb/gtid/
+
+```
+# On the master
+mysqldump  --gtid --master-data --all-databases -uroot > backup.sql
+
+```
+
+
+Troubleshooting
+---------------
+
+In case of problems, start `mysqld` manually. This shows the flags to use: `mysqld --print-defaults`
+
+
