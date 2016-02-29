@@ -6,7 +6,7 @@ FROM ubuntu:trusty
 #RUN echo "deb http://ftp.acc.umu.se/ubuntu/ trusty-updates main restricted" > /etc/apt/sources.list
 
 RUN apt-get update
-RUN apt-get install -y wget nano curl git telnet rsyslog
+RUN apt-get install -y wget nano curl git telnet rsyslog mytop
 ADD ./etc-rsyslog.conf /etc/rsyslog.conf
 
 
@@ -23,7 +23,7 @@ RUN add-apt-repository 'deb [arch=amd64,i386] http://ftp.ddg.lth.se/mariadb/repo
 #RUN add-apt-repository 'deb [arch=amd64,i386] http://lon1.mirrors.digitalocean.com/mariadb/repo/10.1/ubuntu trusty main'
 
 RUN apt-get update -y
-RUN apt-get install -y mariadb-server libpam-cracklib
+RUN apt-get install -y mariadb-server
 
 RUN /bin/bash -c 'echo -e "#Key file\n1;$(openssl rand -hex 32)" > /keys.txt'
 RUN openssl enc -aes-256-cbc -md sha1 -k SECRET -in keys.txt -out keys.enc
@@ -49,13 +49,10 @@ RUN apt-get install -y groff
 RUN easy_install pip
 RUN pip install awscli
 
-RUN yum install -y vixie-cron
 ADD ./daily.sh /
 ADD ./monthly.sh /
-RUN echo '0 1 * * *  /bin/bash -c "/daily.sh"' > /mycron
-RUN echo '0 0 1 * *  /bin/bash -c "/monthly.sh"' > /mycron
-
-
+RUN echo '0 1 * * *  /bin/bash -c "/daily.sh > /var/log/daily.log 2>&1"' > /mycron
+RUN echo '0 0 1 * *  /bin/bash -c "/monthly.sh > /var/log/monthly.log 2>&1"' >> /mycron
 RUN crontab /mycron
 
 

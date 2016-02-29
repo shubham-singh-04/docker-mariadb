@@ -3,21 +3,25 @@ Building
 
 NOTE: For production use, update `Dockerfile` with a password that should be used for encryption of the MariaDb key file.
 
+Create `env.list` by copying `env.list.template` and update the credentials (the password for the database is set below).
+
 Build the image: `docker build -t mariadb .`
 
 Starting the server this way makes it possible to connect and reconnect to the
 server:
 
     docker run -t -i -p 8090:80 \
-    --restart="on-failure:10" --name mariadb -h mariadb \
-    mariadb /bin/bash -c "supervisord; bash"
+    --restart="on-failure:10" --env-file=env.list --link beservices:beservices \
+    --name mariadb -h mariadb \
+    mariadb /bin/bash -c "supervisord; bash; export > env"
 
 
-Start with setting the mysql root password (if this hasn't been done already):
-`mysqladmin -u root password NEWPASSWORD` (cahnge NEWPASSWORD to a string password, preferably random).
+Start with setting the mysql root password:
+`mysqladmin -u root password NEWPASSWORD` (change NEWPASSWORD to the string selected above).
 
+Setup s3 credentials: `aws configure`. Set default region to: `eu-west-1`. Do: `aws s3 ls` to check the setup.
 
-Exit the server with `ctrl-p` `ctrl-q`. Reconnect with `docker attach logserver`
+Exit the server with `ctrl-p` `ctrl-q`. Reconnect with `docker attach mariadb`
 
 
 Setup Encryption

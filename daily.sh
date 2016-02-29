@@ -2,9 +2,9 @@
 source /env
 
 # backups database
-FILE=$db_name-`hostname`-`date +%Y%m%d`.sql
-mysqldump -h$db_server -u$db_username -p$db_password --port=3306 $db_name > /$FILE
+FILE=`hostname`-`date +%Y%m%d`.sql
+mysqldump -h$db_server -u$db_user -p$db_password --port=3306 --all-databases > /$FILE
 gzip -f /$FILE
-/usr/bin/aws s3 cp /$FILE.gz $backup_bucket
+/usr/local/bin/aws s3 cp /$FILE.gz $backup_bucket
 rm /$FILE.gz
 

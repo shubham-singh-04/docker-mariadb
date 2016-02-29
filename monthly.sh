@@ -1,10 +1,19 @@
 #!/bin/bash
 source /env
 
-# backups database
-FILE=$db_name-`hostname`-`date +%Y%m%d`.sql
-mysqldump -h$db_server -u$db_username -p$db_password --port=3306 $db_name > /$FILE
-gzip -f /$FILE
-/usr/bin/aws s3 cp /$FILE.gz $backup_bucket
-rm /$FILE.gz
+FILE=`hostname`-`date +%Y%m%d`-logfiles.tgz
 
+# rotate mysql logs and archive
+rm -rf /var/log/mysql-archive
+mkdir -p /var/log/mysql-archive
+
+# create new logs
+mv /var/log/mysql/* /var/log/mysql-archive
+mysqladmin -h$db_server -u$db_user -p$db_password flush-logs
+
+# copy the logs to S3
+tar -czf /$FILE /var/log/mysql-archive/*
+/usr/local/bin/aws s3 cp /$FILE $backup_bucket
+
+# cleanup
+rm /$FILE
