@@ -24,6 +24,16 @@ Setup s3 credentials: `aws configure`. Set default region to: `eu-west-1`. Do: `
 Exit the server with `ctrl-p` `ctrl-q`. Reconnect with `docker attach mariadb`
 
 
+Connecting from other hosts
+--------------------------
+
+
+Start with changing the `bind` in `my.cnf` to the IP-address of the server.
+
+Then make sure that the users to should connect are allowed to do this in myslq:
+`select user,host from mysql.user;`
+
+
 Setup Encryption
 ---------------
 

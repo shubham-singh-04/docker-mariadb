@@ -55,4 +55,6 @@ RUN echo '0 1 * * *  /bin/bash -c "/daily.sh > /var/log/daily.log 2>&1"' > /mycr
 RUN echo '0 0 1 * *  /bin/bash -c "/monthly.sh > /var/log/monthly.log 2>&1"' >> /mycron
 RUN crontab /mycron
 
-
+# update mysql driver for PHP
+RUN apt-get remove php5-mysql
+RUN apt-get install -y php5-mysqlnd
