@@ -1,6 +1,6 @@
 # NOTE: Change the passowrd for MariaDb encryption below from SECRET
 
-FROM ubuntu:trusty
+FROM ubuntu:bionic
 
 # Mirros: http://ftp.acc.umu.se/ubuntu/ http://us.archive.ubuntu.com/ubuntu/
 #RUN echo "deb http://ftp.acc.umu.se/ubuntu/ trusty-updates main restricted" > /etc/apt/sources.list
